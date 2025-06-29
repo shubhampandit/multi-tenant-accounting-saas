@@ -1,5 +1,6 @@
 package com.shubham.saas.error.handler;
 
+import com.shubham.saas.error.ClientSideException;
 import com.shubham.saas.error.dto.ApiError;
 import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +53,12 @@ public class GlobalErrorHandler {
     public ResponseEntity<ApiError> handleJwtException(JwtException ex){
         log.warn("Jwt Error: ", ex);
         return buildResponse(HttpStatus.UNAUTHORIZED, ex.getLocalizedMessage());
+    }
+
+    @ExceptionHandler(ClientSideException.class)
+    public ResponseEntity<ApiError> handleJwtException(ClientSideException ex){
+        log.warn("Client Side Error: ", ex);
+        return buildResponse(HttpStatus.CONFLICT, ex.getLocalizedMessage());
     }
 
     private ResponseEntity<ApiError> buildResponse(HttpStatus status, String message){

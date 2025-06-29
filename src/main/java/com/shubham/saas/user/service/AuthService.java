@@ -5,6 +5,7 @@ import com.shubham.saas.user.dto.AuthRequest;
 import com.shubham.saas.user.dto.AuthResponse;
 import com.shubham.saas.user.entity.User;
 import com.shubham.saas.user.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -12,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class AuthService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -24,6 +26,7 @@ public class AuthService implements UserDetailsService {
     }
 
     public void register(AuthRequest request){
+        log.info("Registering user...");
         boolean exists = userRepository.findByEmail(request.email()).isPresent();
 
         if (exists)
@@ -32,9 +35,11 @@ public class AuthService implements UserDetailsService {
         String encodedPassword = passwordEncoder.encode(request.password());
         User user = new User(request.email(), encodedPassword, "USER");
         userRepository.save(user);
+        log.info("User registered: {}", request.email());
     }
 
     public AuthResponse login(User user){
+        log.info("Logging in user: {}", user.getEmail());
         String token = jwtProvider.generateToken(user);
         return new AuthResponse(token);
     }
@@ -42,6 +47,6 @@ public class AuthService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByEmail(username)
-                .orElseThrow(() -> new RuntimeException("Invalid Credential"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found."));
     }
 }

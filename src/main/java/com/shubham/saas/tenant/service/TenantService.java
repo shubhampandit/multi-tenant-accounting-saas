@@ -1,13 +1,15 @@
 package com.shubham.saas.tenant.service;
 
-import com.shubham.saas.tenant.context.TenantContext;
+import com.shubham.saas.error.TenantAlreadyExistException;
 import com.shubham.saas.tenant.dto.TenantRegistrationRequest;
 import com.shubham.saas.tenant.entity.Tenant;
 import com.shubham.saas.tenant.repository.TenantRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 public class TenantService {
     private final TenantRepository tenantRepository;
     private final SchemaService schemaService;
@@ -21,10 +23,11 @@ public class TenantService {
 
     @Transactional
     public Tenant registerTenant(TenantRegistrationRequest request){
+        log.info("Register new tenant...");
         String schemaName = generateSchemaName(request.name());
 
         if (tenantRepository.existsBySchemaName(schemaName))
-            throw new IllegalArgumentException("Tenant already exists.");
+            throw new TenantAlreadyExistException("Tenant already exists.");
 
         // Step 1: Create Tenant Entry
         Tenant tenant = new Tenant(request.name(), schemaName, request.adminEmail());
