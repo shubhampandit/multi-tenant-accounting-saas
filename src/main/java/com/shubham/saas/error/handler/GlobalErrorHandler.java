@@ -1,21 +1,21 @@
 package com.shubham.saas.error.handler;
 
 import com.shubham.saas.error.dto.ApiError;
+import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-@ControllerAdvice
+@RestControllerAdvice
 @Slf4j
 public class GlobalErrorHandler {
 
@@ -38,14 +38,20 @@ public class GlobalErrorHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiError> handleAccessDenied(AccessDeniedException ex){
-        log.warn("Access Denied: {}", ex.getMessage());
-        return buildResponse(HttpStatus.FORBIDDEN, "Access Denied.");
+        log.warn("Access Denied: ", ex);
+        return buildResponse(HttpStatus.FORBIDDEN, ex.getLocalizedMessage());
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiError> handleAuthenticationException(AuthenticationException ex){
-        log.warn("Authentication Error: {}", ex.getMessage());
-        return buildResponse(HttpStatus.UNAUTHORIZED, "Authentication Required/Invalid.");
+        log.warn("Authentication Error: ", ex);
+        return buildResponse(HttpStatus.UNAUTHORIZED, ex.getLocalizedMessage());
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ApiError> handleJwtException(JwtException ex){
+        log.warn("Jwt Error: ", ex);
+        return buildResponse(HttpStatus.UNAUTHORIZED, ex.getLocalizedMessage());
     }
 
     private ResponseEntity<ApiError> buildResponse(HttpStatus status, String message){
