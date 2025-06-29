@@ -2,7 +2,6 @@ package com.shubham.saas.security.filter;
 
 import com.shubham.saas.security.jwt.JwtProvider;
 import com.shubham.saas.tenant.context.TenantContext;
-import com.shubham.saas.tenant.repository.TenantRepository;
 import com.shubham.saas.user.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -48,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             .findByEmail(email)
                             .orElseThrow(() -> new RuntimeException("User not found"));
 
-                    var auth = new UsernamePasswordAuthenticationToken(user.getEmail(), null, null);
+                    var auth = new UsernamePasswordAuthenticationToken(user.getUsername(), null, user.getAuthorities());
 
                     auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(auth);

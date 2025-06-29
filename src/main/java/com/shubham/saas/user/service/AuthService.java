@@ -5,11 +5,14 @@ import com.shubham.saas.user.dto.AuthRequest;
 import com.shubham.saas.user.dto.AuthResponse;
 import com.shubham.saas.user.entity.User;
 import com.shubham.saas.user.repository.UserRepository;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AuthService {
+public class AuthService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
@@ -31,14 +34,14 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    public AuthResponse login(AuthRequest request){
-        User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new RuntimeException("Invalid Credential"));
-
-        if (!passwordEncoder.matches(request.password(), user.getPassword()))
-            throw new RuntimeException("Invalid Credential");
-
+    public AuthResponse login(User user){
         String token = jwtProvider.generateToken(user);
         return new AuthResponse(token);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByEmail(username)
+                .orElseThrow(() -> new RuntimeException("Invalid Credential"));
     }
 }
